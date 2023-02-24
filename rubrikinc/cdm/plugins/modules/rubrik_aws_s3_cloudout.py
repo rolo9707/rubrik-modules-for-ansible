@@ -132,8 +132,6 @@ def main():
     """ Main entry point for Ansible module execution.
     """
 
-    results = {}
-
     argument_spec = dict(
         aws_bucket_name=dict(required=True, type='str'),
         aws_region=dict(required=False, type='str', choices=[
@@ -171,7 +169,7 @@ def main():
         timeout=dict(required=False, type='int', default=180),
     )
 
-    argument_spec.update(rubrik_argument_spec)
+    argument_spec |= rubrik_argument_spec
 
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
@@ -213,13 +211,10 @@ def main():
     except Exception as error:
         module.fail_json(msg=str(error))
 
-    if "No change required" in api_request:
-        results["changed"] = False
-    else:
-        results["changed"] = True
-
-    results["response"] = api_request
-
+    results = {
+        "changed": "No change required" not in api_request,
+        "response": api_request,
+    }
     module.exit_json(**results)
 
 

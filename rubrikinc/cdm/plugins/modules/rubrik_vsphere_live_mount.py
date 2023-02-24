@@ -102,8 +102,6 @@ def main():
     """ Main entry point for Ansible module execution.
     """
 
-    results = {}
-
     argument_spec = dict(
         vm_name=dict(required=True, type='str'),
         date=dict(required=False, type='str', default="latest"),
@@ -115,7 +113,7 @@ def main():
 
     )
 
-    argument_spec.update(rubrik_argument_spec)
+    argument_spec |= rubrik_argument_spec
 
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
@@ -145,8 +143,7 @@ def main():
     except Exception as error:
         module.fail_json(msg=str(error))
 
-    results["response"] = api_request
-
+    results = {"response": api_request}
     module.exit_json(**results)
 
 

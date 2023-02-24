@@ -137,12 +137,9 @@ def main():
     """ Main entry point for Ansible module execution.
     """
 
-    results = {}
+    argument_spec = {}
 
-    argument_spec = dict(
-    )
-
-    argument_spec.update(rubrik_argument_spec)
+    argument_spec |= rubrik_argument_spec
 
     argument_spec.update(
         dict(
@@ -183,25 +180,9 @@ def main():
     except Exception as error:
         module.fail_json(msg=str(error))
 
-    # If there are multiple Filesets on the cluster with the same name the end
-    # use will need to provide more specific information. That only occurs
-    # when includes != None
-    if bool(ansible['include']) is False:
-
-        try:
-            api_request = rubrik.assign_physical_host_fileset(
-                ansible['hostname'],
-                ansible['fileset_name'],
-                ansible['operating_system'],
-                ansible['sla_name'],
-                timeout=ansible["timeout"])
-        except Exception as error:
-            module.fail_json(msg=str(error))
-
-    else:
-
-        try:
-            api_request = rubrik.assign_physical_host_fileset(
+    try:
+        api_request = (
+            rubrik.assign_physical_host_fileset(
                 ansible['hostname'],
                 ansible['fileset_name'],
                 ansible['operating_system'],
@@ -211,17 +192,24 @@ def main():
                 ansible["exclude_exception"],
                 ansible["follow_network_shares"],
                 ansible["backup_hidden_folders"],
-                ansible["timeout"])
-        except Exception as error:
-            module.fail_json(msg=str(error))
+                ansible["timeout"],
+            )
+            if bool(ansible['include'])
+            else rubrik.assign_physical_host_fileset(
+                ansible['hostname'],
+                ansible['fileset_name'],
+                ansible['operating_system'],
+                ansible['sla_name'],
+                timeout=ansible["timeout"],
+            )
+        )
+    except Exception as error:
+        module.fail_json(msg=str(error))
 
-    if "No change required" in api_request:
-        results["changed"] = False
-    else:
-        results["changed"] = True
-
-    results["response"] = api_request
-
+    results = {
+        "changed": "No change required" not in api_request,
+        "response": api_request,
+    }
     module.exit_json(**results)
 
 

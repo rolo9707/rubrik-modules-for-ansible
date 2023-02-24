@@ -176,11 +176,9 @@ def main():
         ["object_type", "mssql_db", ["sql_host", "sql_instance"]],
     ]
 
-    argument_spec.update(rubrik_argument_spec)
+    argument_spec |= rubrik_argument_spec
 
     module = AnsibleModule(argument_spec=argument_spec, required_if=required_if, supports_check_mode=False)
-
-    results = {}
 
     ansible = module.params
 
@@ -218,11 +216,11 @@ def main():
     except Exception as error:
         module.fail_json(msg=str(error))
 
-    results["changed"] = True
-
-    results["response"] = api_request
-    results["job_status_url"] = job_status_url
-
+    results = {
+        "changed": True,
+        "response": api_request,
+        "job_status_url": job_status_url,
+    }
     module.exit_json(**results)
 
 

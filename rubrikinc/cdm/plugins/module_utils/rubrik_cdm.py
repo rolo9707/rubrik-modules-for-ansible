@@ -76,9 +76,13 @@ def credentials(module):
     if username is None and password is None and api_token is None:
         module.fail_json(msg="You must provide an api_token or username and password for authentication.")
 
-    if api_token is None:
-        if username is None and password is not None or username is not None and password is None:
-            module.fail_json(msg="The username and password parameters must be provided together.")
+    if api_token is None and (
+        username is None
+        and password is not None
+        or username is not None
+        and password is None
+    ):
+        module.fail_json(msg="The username and password parameters must be provided together.")
 
     return node_ip, username, password, api_token
 
@@ -99,9 +103,7 @@ rubrik_manual_spec = {
 
 rubrik_argument_spec = {
     'provider': dict(type='dict', options=rubrik_provider_spec),
-}
-
-rubrik_argument_spec.update(rubrik_manual_spec)
+} | rubrik_manual_spec
 
 
 def load_provider_variables(module):
@@ -109,8 +111,11 @@ def load_provider_variables(module):
     variable
     """
 
-    provider = module.params.get('provider') or dict()
+    provider = module.params.get('provider') or {}
     for key, value in iteritems(provider):
-        if key in rubrik_argument_spec:
-            if module.params.get(key) is None and value is not None:
-                module.params[key] = value
+        if (
+            key in rubrik_argument_spec
+            and module.params.get(key) is None
+            and value is not None
+        ):
+            module.params[key] = value

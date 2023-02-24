@@ -104,8 +104,6 @@ def main():
     """ Main entry point for Ansible module execution.
     """
 
-    results = {}
-
     argument_spec = dict(
         hostname=dict(required=True, aliases=['ip_address'], type="raw"),
         action=dict(required=True, choices=['add', 'delete']),
@@ -113,7 +111,7 @@ def main():
 
     )
 
-    argument_spec.update(rubrik_argument_spec)
+    argument_spec |= rubrik_argument_spec
 
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
@@ -140,20 +138,18 @@ def main():
 
         # module.fail_json(msg=str(ansible["hostname"]))
 
-        if isinstance(ansible["hostname"], list) is True:
+        if isinstance(ansible["hostname"], list):
             module.fail_json(msg="A list of hostnames is not supported when action is delete.")
         try:
             api_request = rubrik.delete_physical_host(ansible["hostname"], ansible["timeout"])
         except Exception as error:
             module.fail_json(msg=str(error))
 
-    if "No change required" in api_request or "No Change Required" in api_request:
-        results["changed"] = False
-    else:
-        results["changed"] = True
-
-    results["response"] = api_request
-
+    results = {
+        "changed": "No change required" not in api_request
+        and "No Change Required" not in api_request,
+        "response": api_request,
+    }
     module.exit_json(**results)
 
 
