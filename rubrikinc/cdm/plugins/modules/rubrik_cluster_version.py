@@ -51,12 +51,9 @@ def main():
     """ Main entry point for Ansible module execution.
     """
 
-    results = {}
+    argument_spec = {}
 
-    argument_spec = dict(
-    )
-
-    argument_spec.update(rubrik_argument_spec)
+    argument_spec |= rubrik_argument_spec
 
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
@@ -79,8 +76,7 @@ def main():
     except Exception as error:
         module.fail_json(msg=str(error))
 
-    results["version"] = api_request
-
+    results = {"version": api_request}
     module.exit_json(**results)
 
 

@@ -102,8 +102,6 @@ def main():
     """ Main entry point for Ansible module execution.
     """
 
-    results = {}
-
     argument_spec = dict(
         managed_volume_name=dict(required=True, aliases=['name']),
         sla_name=dict(required=False, type='str', default="current"),
@@ -111,7 +109,7 @@ def main():
         timeout=dict(required=False, type='int', default=15),
     )
 
-    argument_spec.update(rubrik_argument_spec)
+    argument_spec |= rubrik_argument_spec
 
     required_if = [
         ('action', 'end', ['sla_name'])
@@ -133,26 +131,19 @@ def main():
     except Exception as error:
         module.fail_json(msg=str(error))
 
-    if ansible["action"] == "begin":
-        try:
+    try:
+        if ansible["action"] == "begin":
             api_request = rubrik.begin_managed_volume_snapshot(ansible["managed_volume_name"], ansible["timeout"])
-        except Exception as error:
-            module.fail_json(msg=str(error))
-
-    else:
-        try:
+        else:
             api_request = rubrik.end_managed_volume_snapshot(
                 ansible["managed_volume_name"], ansible["sla_name"], ansible["timeout"])
-        except Exception as error:
-            module.fail_json(msg=str(error))
+    except Exception as error:
+        module.fail_json(msg=str(error))
 
-    if "No change required" in api_request:
-        results["changed"] = False
-    else:
-        results["changed"] = True
-
-    results["response"] = api_request
-
+    results = {
+        "changed": "No change required" not in api_request,
+        "response": api_request,
+    }
     module.exit_json(**results)
 
 

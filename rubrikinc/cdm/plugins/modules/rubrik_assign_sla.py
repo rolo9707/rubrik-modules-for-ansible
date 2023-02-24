@@ -112,8 +112,6 @@ def main():
     """ Main entry point for Ansible module execution.
     """
 
-    results = {}
-
     argument_spec = dict(
         object_name=dict(required=True, type='raw'),
         sla_name=dict(required=True, type='str'),
@@ -133,7 +131,7 @@ def main():
         timeout=dict(required=False, type='int', default=30),
     )
 
-    argument_spec.update(rubrik_argument_spec)
+    argument_spec |= rubrik_argument_spec
 
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
@@ -154,12 +152,15 @@ def main():
         module.fail_json(msg='The Rubrik Python SDK is required for this module (pip install rubrik_cdm).')
 
     if object_type == "mssql_host":
-        if log_backup_frequency_in_seconds is None or log_retention_hours is None or log_retention_hours is None:
+        if (
+            log_backup_frequency_in_seconds is None
+            or log_retention_hours is None
+        ):
             module.fail_json(
                 msg="""When the object_type is 'mssql_host', the 'log_backup_frequency_in_seconds',
                 'log_retention_hours', 'copy_only' paramaters must be populated.""")
 
-    if object_type == "volume_group":
+    elif object_type == "volume_group":
         if windows_host is None:
             module.fail_json(msg="When the object_type is 'volume_group', 'windows_host' must also be populated.")
 
@@ -183,13 +184,10 @@ def main():
     except Exception as error:
         module.fail_json(msg=str(error))
 
-    if "No change required" in api_request:
-        results["changed"] = False
-    else:
-        results["changed"] = True
-
-    results["response"] = api_request
-
+    results = {
+        "changed": "No change required" not in api_request,
+        "response": api_request,
+    }
     module.exit_json(**results)
 
 

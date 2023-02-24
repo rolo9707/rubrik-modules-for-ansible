@@ -72,8 +72,6 @@ def main():
     """ Main entry point for Ansible module execution.
     """
 
-    results = {}
-
     argument_spec = dict(
         url=dict(required=True),
         wait_for_completion=dict(required=False, type='bool', default=True),
@@ -81,7 +79,7 @@ def main():
     )
 
     # Start Parameters
-    argument_spec.update(rubrik_argument_spec)
+    argument_spec |= rubrik_argument_spec
     # End Parameters
 
     module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
@@ -105,10 +103,7 @@ def main():
     except Exception as error:
         module.fail_json(msg=str(error))
 
-    results["changed"] = False
-
-    results["response"] = api_request
-
+    results = {"changed": False, "response": api_request}
     module.exit_json(**results)
 
 

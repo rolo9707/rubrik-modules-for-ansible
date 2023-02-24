@@ -3,7 +3,7 @@ directory = "../library/"
 filename = "rubrik_bootstrap.py"
 
 
-with open("{}{}".format(directory, filename)) as fp:
+with open(f"{directory}{filename}") as fp:
     line = fp.readline()
     cnt = 1
     while line:
@@ -17,19 +17,20 @@ with open("{}{}".format(directory, filename)) as fp:
 
 
 module_parameters = []
-with open("{}{}".format(directory, filename)) as fp:
+with open(f"{directory}{filename}") as fp:
     line = fp.readline()
     cnt = 1
     while line:
-        if (arugment_spec_upate_start + 3) <= cnt <= (arugment_spec_upate_end - 3):
-            if line.strip() != "":
-                module_parameters.append(line.strip())
+        if (arugment_spec_upate_start + 3) <= cnt <= (
+            arugment_spec_upate_end - 3
+        ) and line.strip() != "":
+            module_parameters.append(line.strip())
         line = fp.readline()
         cnt += 1
     fp.close()
 
 print("DOCUMENTATION = '''")
-print("module: {}".format(filename.replace(".py", "")))
+print(f'module: {filename.replace(".py", "")}')
 print("short_description: ")
 print("description:")
 print("    -")
@@ -40,7 +41,7 @@ print("options:")
 for param in module_parameters:
     indivdual_param = param[:-2].split("=dict(")
     option_name = indivdual_param[0]
-    print("  " + option_name + ":")
+    print(f"  {option_name}:")
     print("    description: ")
     if option_name == "timeout":
         print("      - The number of seconds to wait to establish a connection the Rubrik cluster before returning a timeout error.")

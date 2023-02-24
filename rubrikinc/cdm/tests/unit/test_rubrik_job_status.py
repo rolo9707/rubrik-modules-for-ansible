@@ -55,10 +55,9 @@ class TestRubrikJobStatus(unittest.TestCase):
 
     def test_module_fail_with_invalid_wait_for_completion(self):
 
-        url = "https://1.1.1.1/api/v1/vmware/vm/request/"
         job_id = "CREATE_VMWARE_SNAPSHOT_fbcb1d87-9872-4227-a68c-5982f48-vm-289386_e837-a04c-4327-915b-7698d2c5ecf48:::0"
 
-        full_url = url + job_id
+        full_url = f"https://1.1.1.1/api/v1/vmware/vm/request/{job_id}"
 
         set_module_args({
             'url': full_url,
